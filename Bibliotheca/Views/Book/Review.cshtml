@@ -1,0 +1,77 @@
+﻿@model Bibliotheca.Models.ViewModels.ReviewViewModel
+
+
+<section>
+	<div class="container p-5">
+		<div class="row">
+			<div class="col-md-8 offset-md-2 col-lg-6 offset-lg-3">
+				<h1 class="pb-4">Review - @Model.Title @Model.Author</h1>
+				<form asp-action="Review" method="post">
+					<input asp-for="BookId" type="hidden" />
+
+					<div class="form-group mb-3">
+						<label class="form-label">Rating</label>
+						<div class="d-flex">
+							<input asp-for="Rating" type="radio" class="form-check-input star-input" value="1" id="star1" checked />
+							<label class="star" for="star1"><i id="s1" data-rating="1" class="fas fa-star star-label"></i></label>
+
+							<input asp-for="Rating" type="radio" class="form-check-input star-input" value="2" id="star2" />
+							<label class="star" for="star2"><i id="s2" data-rating="2" class="far fa-star star-label"></i></label>
+
+							<input asp-for="Rating" type="radio" class="form-check-input star-input" value="3" id="star3" />
+							<label class="star" for="star3"><i id="s3" data-rating="3" class="far fa-star star-label"></i></label>
+
+							<input asp-for="Rating" type="radio" class="form-check-input star-input" value="4" id="star4" />
+							<label class="star" for="star4"><i id="s4" data-rating="4" class="far fa-star star-label"></i></label>
+
+							<input asp-for="Rating" type="radio" class="form-check-input star-input" value="5" id="star5" />
+							<label class="star" for="star5"><i id="s5" data-rating="5" class="far fa-star star-label"></i></label>
+						</div>
+
+						<span asp-validation-for="Rating" class="text-danger d-block"></span>
+					</div>
+
+
+					<div class="form-group mb-3">
+						<label asp-for="Text" class="form-label">Text</label>
+						<input asp-for="Text" type="text" class="form-control" required />
+						<span asp-validation-for="Text" class="text-danger"></span>
+					</div>
+
+					<button type="submit" class="btn btn-primary">Submit</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</section>
+
+<style>
+	.star {
+		font-size: 30px;
+		cursor: pointer;
+	}
+
+	input[type="radio"] {
+		display: none;
+	}
+</style>
+
+@section Scripts {
+	<script>
+		const stars = document.querySelectorAll('.star-input');
+		const labels = document.querySelectorAll('.star-label');
+
+		stars.forEach(star => {
+			star.addEventListener("click", function () {
+				labels.forEach(label => {
+					if (star.value >= label.dataset.rating) {
+						label.className = "fas fa-star star-label";
+					}
+					else {
+						label.className = "far fa-star star-label";
+					}
+				});
+			});
+		});
+	</script>
+}

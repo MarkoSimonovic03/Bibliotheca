@@ -1,0 +1,177 @@
+﻿@model Bibliotheca.Models.ViewModels.LoansViewModel
+
+@{
+	ViewData["Title"] = "Your loans";
+}
+
+@if (TempData["Message"] != null)
+{
+	<div class="container px-5">
+		<div id="tempDataMessage" class="alert alert-success">
+			@TempData["Message"]
+		</div>
+	</div>
+}
+
+@* <div class="px-4 col-xl-4">
+								<h2>@loan.Book.Title</h2>
+								<p>
+									<strong>Author:</strong> @loan.Book.Author<br />
+									<strong>Publisher:</strong> @loan.Book.Publisher<br />
+									<strong>Year of publication:</strong> @loan.Book.YearOfPublication<br />
+									<strong>Number of pages:</strong> @loan.Book.NumberOfPages<br />
+									<strong>Available quantity:</strong> @loan.Book.AvailableQuantity
+								</p>
+							</div>
+
+							<div class="px-4 col-xl-4">
+								<p>
+									@{
+										var bg = loan.LoanStatus == Bibliotheca.Models.enums.LoanStatus.InProgress ? "text-primary" : loan.LoanStatus == Bibliotheca.Models.enums.LoanStatus.Returned ? "text-success" : "text-danger";
+									}
+									<strong>Loan date:</strong> @loan.LoanDate<br />
+									<strong>Due Date:</strong> @loan.DueDate<br />
+									<strong>Status:</strong> <span class="@bg fw-bold">@loan.LoanStatus</span><br />
+								</p>
+
+							</div>
+
+							<div class="px-4 col-xl-4">
+								<p>
+									<strong>Username:</strong> @loan.User.UserName
+								</p>
+								@if (loan.LoanStatus != Bibliotheca.Models.enums.LoanStatus.Returned)
+								{
+									<form asp-action="ReturnAllLoans" method="post">
+										<input value="@loan.Id" name="id" type="hidden" />
+										<button type="submit" class="btn btn-primary">Return</button>
+									</form>
+								}
+							</div> *@
+<form method="get" asp-action="UserLoans">
+	<section>
+		<div class="bg-home-wrapper">
+			<div class="bg-home-overlay">
+				<div class="container">
+					<h1 class="text-white display-1 text-center my-5">Your Loans</h1>
+
+					<div class="custom-searchbar row">
+						<div class="col-sm-6 col-md-6 my-3 px-4 px-sm-2 d-flex justify-content-center align-items-center">
+
+							<input type="date" class="custom-input" name="loanDate" id="loanDate" value="@Context.Request.Query["loanDate"]" />
+						</div>
+
+						<div class="col-sm-6 col-md-6 my-3 px-4 px-sm-2 d-flex justify-content-between align-items-center">
+							<div class="dropdown">
+								<button class="dropdown-toggle btn-dropdown" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+									Categories
+								</button>
+
+								<div class="dropdown-menu py-2 px-4" aria-labelledby="dropdownMenuButton1">
+									@foreach (var status in Enum.GetValues(typeof(Bibliotheca.Models.enums.LoanStatus)))
+									{
+										<div class="form-check form-check-inline">
+											<input class="form-check-input" type="checkbox" name="LoanStatus" value="@status" id="@status"
+											@if (Context.Request.Query["LoanStatus"].ToString().Contains(status.ToString()))
+											{
+												<text>checked</text>
+											} />
+											<label class="form-check-label" for="@status">
+												@status
+											</label>
+										</div>
+									}
+								</div>
+							</div>
+							<button type="submit" class="btn-custom btn-search">Search</button>
+						</div>
+
+
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+
+
+
+	<section class="pt-5">
+		<div class="container p-5">
+			@if (Model.Loans.Any())
+			{
+				<div class="row">
+					<div class="col-10 offset-1 col-sm-12 offset-sm-0 col-md-10 offset-md-1 col-lg-8 offset-lg-2 col-xl-6 offset-xl-3">
+						@* <h2 class="display-3 mb-5 text-white">Past Loans</h2> *@
+						@foreach (var loan in Model.Loans)
+						{
+							<div class="loan-card mb-5 mb-sm-4 p-5 p-sm-4 position-relative">
+								<div class="loan-card-bg"></div>
+								<div class="loan-card-bg2"></div>
+								@{
+									var img = loan.Book.ImageUrl == null || loan.Book.ImageUrl == "" ? "book-placeholder.png" : loan.Book.ImageUrl;
+								}
+
+								<div class="row">
+									<div class="col-sm-5 col-md-4">
+										<a href="@Url.Action("Details","Book", new{ id = loan.BookId})">
+											<img src="~/images/books/@img" alt="Book - @loan.Book.Title" class="loan-card-img" />
+										</a>
+									</div>
+									<div class="col-sm-7 col-md-8 mt-4 mt-sm-0">
+										<h3>
+											@loan.Book.Title
+										</h3>
+
+
+										<p>
+											@{
+												var bg = loan.LoanStatus == Bibliotheca.Models.enums.LoanStatus.InProgress ? "text-primary" : loan.LoanStatus == Bibliotheca.Models.enums.LoanStatus.Returned ? "text-success" : "text-danger";
+											}
+											<strong>Loan date:</strong> @loan.LoanDate<br />
+											<strong>Due Date:</strong> @loan.DueDate<br />
+											<strong>Status:</strong> <span class="@bg fw-bold">@loan.LoanStatus</span><br />
+										</p>
+@* 										<p><span class="fw-bold">Email:</span> @loan.User.UserName</p> *@
+										@if (loan.LoanStatus != Bibliotheca.Models.enums.LoanStatus.Returned)
+										{
+											<a href="@Url.Action("ReturnUserLoan","Loan", new{ id = loan.Id})" class="btn-custom">Return</a>
+											@* <form asp-action="ReturnAllLoans" method="post">
+								<input value="@loan.Id" name="id" type="hidden" />
+								<button type="submit" class="btn-custom">Return</button>
+								</form> *@
+										}
+									</div>
+								</div>
+							</div>
+						}
+					</div>
+				</div>
+			}
+			else
+			{
+				<p class="fs-2 py-5 text-white">Currently, there are no loans for this search...</p>
+			}
+		</div>
+	</section>
+
+	@Html.Partial("_Pagination", Model.Pagination)
+</form>
+
+
+
+<style>
+
+</style>
+
+@section Scripts {
+	<script>
+		setTimeout(function () {
+			var tempDataMessage = document.getElementById("tempDataMessage");
+			if (tempDataMessage) {
+				tempDataMessage.style.display = "none";
+			}
+		}, 5000);
+	</script>
+}

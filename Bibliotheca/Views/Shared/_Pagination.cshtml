@@ -1,0 +1,102 @@
+﻿@model Bibliotheca.Models.ViewModels.PaginationViewModel
+@{
+	var pages = new List<int>();
+	var TotalPages = Model.TotalPages;
+	var PageCount = Model.PageCount;
+	var PageSize = Model.PageSize;
+
+	if (PageCount <= 5)
+	{
+		for (int i = 1; i <= PageCount; i++)
+		{
+			pages.Add(i);
+		}
+	}
+	else
+	{
+		pages.AddRange(new[] { 1, -1, PageCount - 2, PageCount - 1, PageCount });
+	}
+
+	if (TotalPages - PageCount <= 4)
+	{
+		for (int i = PageCount + 1; i <= TotalPages; i++)
+		{
+			pages.Add(i);
+		}
+	}
+	else
+	{
+		pages.AddRange(new[] { PageCount + 1, PageCount + 2, -1, TotalPages });
+	}
+}
+<input type="hidden" name="pageCount" id="pageCount" value="@PageCount" />
+<input type="hidden" name="pageSize" id="pageSize" value="@PageSize" />
+
+@if (TotalPages > 1)
+{
+	<section>
+		<div class="container px-5 pb-5">
+			<div class="d-flex justify-content-center align-items-center gap-2">
+				@if (PageCount > 1 && TotalPages>2)
+				{
+					<div class="pag-el">
+						<button type="submit" id="prev">Prev</button>
+					</div>
+				}
+
+				<div class="pag-el g-line">
+					@foreach (var item in pages)
+					{
+						if (item != -1)
+						{
+							<button type="submit" data-count="@item" class="btn-page @(item == PageCount ? "current-page" : "")">@item</button>
+						}
+						else
+						{
+							<div class="d-flex align-items-center px-3 btn-empty">
+							<span>...</span>
+							</div>
+
+						}
+					}
+				</div>
+
+				@if (PageCount < TotalPages && TotalPages > 2)
+				{
+					<div class="pag-el">
+						<button type="submit" id="next">Next</button>
+					</div>
+				}
+			</div>
+		</div>
+	</section>
+}
+
+@* @section Scripts {
+	<script>
+		const prev = document.getElementById("prev");
+		const next = document.getElementById("next");
+
+		const pageCount = document.getElementById("pageCount");
+
+		const btns = document.querySelectorAll('.btn-page');
+
+		btns.forEach(button => {
+			button.addEventListener('click', () => {
+				pageCount.value = Number(button.dataset.count);
+			});
+		});
+
+		if (prev) {
+			prev.addEventListener('click', function () {
+				pageCount.value = Number(pageCount.value) - 1;
+			})
+		}
+
+		if (next) {
+			next.addEventListener('click', function () {
+				pageCount.value = Number(pageCount.value) + 1;
+			})
+		}
+	</script>
+} *@

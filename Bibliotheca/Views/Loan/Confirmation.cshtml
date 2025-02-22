@@ -1,0 +1,17 @@
+﻿@model Bibliotheca.Models.ViewModels.LoanConfirmationViewModel
+@{
+    ViewData["Title"] = "Loan Confirmation";
+}
+
+<section>
+    <div class="container p-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2 col-lg-6 offset-lg-3">
+                <h1 class="pb-4">The book is now successfully borrowed.</h1>
+                <p>Title: @Model.Book.Title</p>
+                <p>LoanDate: @Model.Loan.LoanDate</p>
+                <p>DueDate: @Model.Loan.DueDate</p>
+            </div>
+        </div>
+    </div>
+</section>

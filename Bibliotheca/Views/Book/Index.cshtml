@@ -1,0 +1,256 @@
+﻿@model Bibliotheca.Models.ViewModels.BookIndexViewModel
+
+@{
+	ViewData["Title"] = "Bilbiotheca";
+}
+
+
+@if (TempData["Message"] != null)
+{
+	<div class="container px-5">
+		<div id="tempDataMessage" class="alert alert-success">
+			@TempData["Message"]
+		</div>
+	</div>
+}
+
+<form method="get" asp-controller="Book" asp-action="Index">
+	<section>
+		<div class="bg-home-wrapper">
+			<div class="bg-home-overlay">
+				<div class="container">
+					<h1 class="text-white display-1 text-center my-5">Bibliotheca</h1>
+
+					<div class="custom-searchbar row">
+						<div class="col-sm-3 col-md-4 my-3 px-4 px-sm-1 d-flex justify-content-center align-items-center">
+							<input class="custom-input" type="text" name="title" id="title" value="@Context.Request.Query["title"]" placeholder="Title..." />
+						</div>
+
+						<div class="col-sm-3 col-md-4 my-3 px-4 px-sm-0 d-flex justify-content-center align-items-center">
+							<input class="custom-input" type="text" name="author" id="author" value="@Context.Request.Query["author"]" placeholder="Author..." />
+						</div>
+
+						<div class="col-sm-6 col-md-4 my-3 px-4 px-sm-2 d-flex justify-content-between align-items-center">
+							<div class="dropdown">
+								<button class="dropdown-toggle btn-dropdown" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+									Categories
+								</button>
+
+								<div class="dropdown-menu py-2 px-4" aria-labelledby="dropdownMenuButton1">
+									@foreach (var category in Model.Categories)
+									{
+
+										<div class="form-check form-check-inline">
+											<input class="form-check-input" type="checkbox" name="Categories" value="@category.Name" id="category_@category.Name"
+											@if (Context.Request.Query["Categories"].ToString().Contains(category.Name))
+											{
+												<text>checked</text>
+											} />
+											<label class="form-check-label" for="category_@category.Name">
+												@category.Name
+											</label>
+										</div>
+
+									}
+								</div>
+							</div>
+							<button type="submit" class="btn-custom btn-search">Search</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+		@* 	<div class="container px-5 text-white">
+
+		<div class="row g-1">
+		<div class="col-lg-2 d-flex flex-sm-row flex-lg-column">
+		<label for="title" class="">Title</label>
+		<input type="text" class="" name="title" id="title" value="@Context.Request.Query["title"]" />
+		</div>
+
+		<div class="col-lg-2 d-flex flex-sm-row flex-lg-column">
+		<label for="author">Author</label>
+		<input type="text" name="author" id="author" value="@Context.Request.Query["author"]" />
+		</div>
+
+		<div class="col-lg-2 d-flex flex-sm-row flex-lg-column">
+		@foreach (var category in Model.Categories)
+		{
+		<div class="form-check form-check-inline">
+		<input class="form-check-input" type="checkbox" name="Categories" value="@category.Name" id="category_@category.Name"
+		@if (Context.Request.Query["Categories"].ToString().Contains(category.Name))
+		{
+		<text>checked</text>
+		} />
+		<label class="form-check-label" for="category_@category.Name">
+		@category.Name
+		</label>
+		</div>
+		}
+		</div>
+
+		<div class="col-md-4 col-lg-2 d-flex align-items-end">
+		<button type="submit" class="btn btn-primary ">Search</button>
+		</div>
+		</div>
+
+
+
+
+		<div class="custom-form row">
+		<div class="col-sm-3 col-md-4 my-3 px-4 px-sm-1 d-flex justify-content-center align-items-center">
+		<input class="custom-input" type="text" name="title" id="title" value="@Context.Request.Query["title"]" placeholder="Title..." />
+		</div>
+
+		<div class="col-sm-3 col-md-4 my-3 px-4 px-sm-0 d-flex justify-content-center align-items-center">
+		<input class="custom-input" type="text" name="author" id="author" value="@Context.Request.Query["author"]" placeholder="Author..." />
+		</div>
+
+		<div class="col-sm-6 col-md-4 my-3 px-4 px-sm-2 d-flex justify-content-between align-items-center">
+		<div class="dropdown">
+		<button class="dropdown-toggle btn-dropdown" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+		Categories
+		</button>
+
+		<div class="dropdown-menu py-2 px-4" aria-labelledby="dropdownMenuButton1">
+		@foreach (var category in Model.Categories)
+		{
+
+		<div class="form-check form-check-inline">
+		<input class="form-check-input" type="checkbox" name="Categories" value="@category.Name" id="category_@category.Name"
+		@if (Context.Request.Query["Categories"].ToString().Contains(category.Name))
+		{
+		<text>checked</text>
+		} />
+		<label class="form-check-label" for="category_@category.Name">
+		@category.Name
+		</label>
+		</div>
+
+		}
+		</div>
+		</div>
+		<button type="submit" class="btn-search">Search</button>
+		</div>
+		</div>
+
+
+
+		</div>*@
+	</section>
+
+	<section class="pt-5">
+		<div class="container p-5 text-white">
+			@if (Model.Books.Any())
+			{
+				<h2 class="display-3 mb-5">Available Books</h2>
+				<div class="row g-5">
+					@foreach (var book in Model.Books)
+					{
+						<div class="col-xxl-3 col-lg-4 col-md-6 offset-md-0 col-sm-8 offset-sm-2 col-10 offset-1">
+							<div class="book-card">
+								<div class="position-relative screen-img">
+									@{
+										var img = book.ImageUrl == null || book.ImageUrl == "" ? "book-placeholder.png" : book.ImageUrl;
+									}
+									<img src="~/images/books/@img" alt="Book - @book.Title" class="book-card-img position-absolute" />
+									<div class="screen-img-hover position-absolute d-flex flex-column justify-content-center align-items-center px-3">
+										<a href="@Url.Action("Details","Book", new{ id = book.Id})" class="btn-custom fs-4">View details</a>
+									</div>
+								</div>
+
+
+								<div class="fs-3 px-2 text-center">@book.Title</div>
+							</div>
+
+							@* <div class="book-card p-3 h-100 d-flex flex-column align-items-start justify-content-between">
+					<div class="w-100">
+					<h3>@book.Title</h3>
+					<p class="text-end">By: <span class="fw-bold">@book.Author</span></p>
+					</div>
+					<div class="d-flex flex-column align-items-end w-100">
+					<a href="@Url.Action("Details","Book", new{ id = book.Id})" class="btn btn-primary">View details</a>
+					</div>
+					</div> *@
+						</div>
+					}
+				</div>
+			}
+			else
+			{
+				<p class="fs-2 py-5">Currently, there are no available books for this search...</p>
+			}
+		</div>
+	</section>
+
+	@Html.Partial("_Pagination", Model.Pagination)
+</form>
+
+<style>
+
+
+	/*
+			/	CARD
+			*/
+	.book-card {
+		font-weight: 300;
+	}
+
+	.screen-img {
+		height: 400px;
+		width: 100%;
+	}
+
+	.book-card-img {
+		height: 400px;
+		width: 100%;
+		object-fit: cover;
+		border-radius: 10px;
+	}
+
+	.screen-img-hover {
+		opacity: 0;
+		backdrop-filter: blur(5px);
+		inset: 0%;
+		padding-top: 8rem;
+		transition: 0.2s;
+		border-radius: 9px;
+		border: 4px solid white;
+	}
+
+		.screen-img-hover:hover {
+			opacity: 1;
+		}
+
+	.card-book-btn {
+		text-decoration: none;
+		color: white;
+		padding: 10px 30px;
+		border: 3px solid white;
+		border-radius: 35px;
+		padding: 15px 20px;
+		font-size: 1.4rem;
+		background: linear-gradient(to right, #633ff6, #e755f7);
+		background-size: 100%;
+		transition: 0.8s;
+	}
+
+		.card-book-btn:hover {
+			color: white;
+			background-size: 300%;
+		}
+
+</style>
+
+@section Scripts {
+	<script>
+		setTimeout(function () {
+			var tempDataMessage = document.getElementById("tempDataMessage");
+			if (tempDataMessage) {
+				tempDataMessage.style.display = "none";
+			}
+		}, 5000);
+	</script>
+}

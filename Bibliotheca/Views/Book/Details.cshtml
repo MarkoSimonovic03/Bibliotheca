@@ -1,0 +1,612 @@
+﻿@model Bibliotheca.Models.ViewModels.BookDetailViewModel
+
+@{
+	ViewData["Title"] = "Bilbiotheca";
+}
+
+
+<section>
+	<div class="bg-home-wrapper">
+		<div class="bg-home-overlay">
+			<div class="container px-5">
+				<h1 class="text-white display-1">@Model.Book.Title</h1>
+			</div>
+		</div>
+	</div>
+</section>
+
+@* <section class="heading-section">
+	<div class="container px-5 pt-5 text-white fw-lighter ">
+		<h1 class="display-2">
+			@Model.Book.Title
+		</h1>
+	</div>
+</section> *@
+
+<section>
+	<div class="container p-5 text-white fw-lighter">
+		<div class="row g-5">
+			<div class="col-lg-3 col-md-5">
+				@{
+					var img = Model.Book.ImageUrl == null || Model.Book.ImageUrl == "" ? "book-placeholder.png" : Model.Book.ImageUrl;
+				}
+				<img src="~/images/books/@img" alt="Book - @Model.Book.Title" class="book-img" />
+
+				<div class="d-lg-none d-md-block d-none pt-5">
+					@if (Model.Book.Reviews.Any())
+					{
+						<div class="book-details p-3 fs-5 mb-4">
+							<h3 class="fw-light">Average Rating</h3>
+							<div class="book-details-line mb-4"></div>
+							<h3 class="fw-bold">
+								@Model.AverageRating.ToString("0.0")
+							</h3>
+
+
+							@for (int i = 0; i < (int)Model.AverageRating; i++)
+							{
+								<i class="fas fa-star"></i>
+							}
+
+							@if (Model.AverageRating != (int)Model.AverageRating)
+							{
+								@if (Model.AverageRating <= (int)Model.AverageRating + 0.2)
+								{
+									<i class="far fa-star"></i>
+								}
+								else if (Model.AverageRating <= (int)Model.AverageRating + 0.8)
+								{
+									<i class="fas fa-star-half-alt"></i>
+								}
+								else
+								{
+									<i class="fas fa-star"></i>
+								}
+
+								@for (int i = (int)Model.AverageRating + 1; i < 5; i++)
+								{
+									<i class="far fa-star"></i>
+								}
+							}
+							else
+							{
+								@for (int i = (int)Model.AverageRating + 1; i <= 5; i++)
+								{
+									<i class="far fa-star"></i>
+								}
+							}
+
+							<p>@Model.Book.Reviews.Count() Reviews</p>
+						</div>
+					}
+					<div class="book-details p-3 fs-5">
+						<div class="d-flex justify-content-between align-items-start">
+							<h3 class="fw-light">Book Details</h3>
+
+							@if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+							{
+								<div class="dropdown">
+									<button class="btn-custom btn-dd dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false"></button>
+									<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+										<li><a href="@Url.Action("Edit","Book", new{ id = @Model.Book.Id})" class="dropdown-item fs-5 text-end">Edit</a></li>
+										<li>
+											<form asp-action="Delete" method="post">
+												<input name="id" value="@Model.Book.Id" type="hidden" />
+												<button type="submit" class="dropdown-item fs-5 text-end">Delete</button>
+											</form>
+										</li>
+									</ul>
+								</div>
+							}
+
+						</div>
+						<div class="book-details-line mb-4"></div>
+						<p>Author: <span class="fw-bold">@Model.Book.Author</span></p>
+						<p>Publisher: <span class="fw-bold">@Model.Book.Publisher</span></p>
+						<p>Year of publication: <span class="fw-bold">@Model.Book.YearOfPublication</span></p>
+						<p>Number of pages: <span class="fw-bold">@Model.Book.NumberOfPages</span></p>
+						<p>Available quantity: <span class="fw-bold">@Model.Book.AvailableQuantity</span></p>
+						@if (Model.Book.AvailableQuantity > 0)
+						{
+							@if (User.Identity.IsAuthenticated)
+							{
+								<form asp-controller="Loan" asp-action="Create" method="post">
+									<input name="id" value="@Model.Book.Id" type="hidden" />
+									<button type="submit" class="btn-custom">Borrow a Book</button>
+								</form>
+							}
+							else
+							{
+								<p>Log in to the application to borrow a book.</p>
+							}
+						}
+						else
+						{
+							<p>Sorry, the book is currently out of stock.</p>
+						}
+					</div>
+				</div>
+			</div>
+
+
+
+
+
+
+
+
+
+
+
+
+			<div class="col-md-7 col-lg-5 col-xl-6">
+				<h2 class="pb-4 display-4">Summary</h2>
+				<p class="fw-light summary-text fs-5" id="summaryText">
+					@Model.Book.Summary
+				</p>
+				<button id="readMore" class="btn-custom read-more fs-5 px-3">Read more...</button>
+			</div>
+
+
+
+
+
+
+
+
+
+
+
+
+			<div class="col-lg-4 col-xl-3 d-lg-block d-md-none d-block">
+				@if (Model.Book.Reviews.Any())
+				{
+					<div class="book-details p-3 fs-5 mb-4">
+						<h3 class="fw-light">Average Rating</h3>
+						<div class="book-details-line mb-4"></div>
+						<h3 class="fw-bold">
+							@Model.AverageRating.ToString("0.0")
+						</h3>
+
+
+						@for (int i = 0; i < (int)Model.AverageRating; i++)
+						{
+							<i class="fas fa-star"></i>
+						}
+
+						@if (Model.AverageRating != (int)Model.AverageRating)
+						{
+							@if (Model.AverageRating <= (int)Model.AverageRating + 0.2)
+							{
+								<i class="far fa-star"></i>
+							}
+							else if (Model.AverageRating <= (int)Model.AverageRating + 0.8)
+							{
+								<i class="fas fa-star-half-alt"></i>
+							}
+							else
+							{
+								<i class="fas fa-star"></i>
+							}
+
+							@for (int i = (int)Model.AverageRating + 1; i < 5; i++)
+							{
+								<i class="far fa-star"></i>
+							}
+						}
+						else
+						{
+							@for (int i = (int)Model.AverageRating + 1; i <= 5; i++)
+							{
+								<i class="far fa-star"></i>
+							}
+						}
+
+						<p>@Model.Book.Reviews.Count() Reviews</p>
+					</div>
+				}
+				<div class="book-details p-3 fs-5">
+					<div class="d-flex justify-content-between align-items-start">
+						<h3 class="fw-light">Book Details</h3>
+
+						@if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+						{
+							<div class="dropdown">
+								<button class="btn-custom btn-dd dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false"></button>
+								<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+									<li><a href="@Url.Action("Edit","Book", new{ id = @Model.Book.Id})" class="dropdown-item fs-5 text-end">Edit</a></li>
+									<li>
+										<form asp-action="Delete" method="post">
+											<input name="id" value="@Model.Book.Id" type="hidden" />
+											<button type="submit" class="dropdown-item fs-5 text-end">Delete</button>
+										</form>
+									</li>
+								</ul>
+							</div>
+						}
+
+					</div>
+					<div class="book-details-line mb-4"></div>
+					<p>Author: <span class="fw-bold">@Model.Book.Author</span></p>
+					<p>Publisher: <span class="fw-bold">@Model.Book.Publisher</span></p>
+					<p>Year of publication: <span class="fw-bold">@Model.Book.YearOfPublication</span></p>
+					<p>Number of pages: <span class="fw-bold">@Model.Book.NumberOfPages</span></p>
+					<p>Available quantity: <span class="fw-bold">@Model.Book.AvailableQuantity</span></p>
+					@if (Model.Book.AvailableQuantity > 0)
+					{
+						@if (User.Identity.IsAuthenticated)
+						{
+							<form asp-controller="Loan" asp-action="Create" method="post">
+								<input name="id" value="@Model.Book.Id" type="hidden" />
+								<button type="submit" class="btn-custom">Borrow a Book</button>
+							</form>
+						}
+						else
+						{
+							<p>Log in to the application to borrow a book.</p>
+						}
+					}
+					else
+					{
+						<p>Sorry, the book is currently out of stock.</p>
+					}
+				</div>
+			</div>
+
+		</div>
+	</div>
+</section>
+
+
+
+<section>
+	<div class="container p-5 text-white fw-lighter">
+		<div class="row">
+
+			<div class="col-lg-6 offset-lg-3">
+				<form asp-action="Review" method="post">
+					<h2 class="display-4">Write a Review</h2>
+
+					<input name="BookId" value="@Model.Book.Id" type="hidden" />
+
+					<div class="form-group mb-3">
+
+						<div class="d-flex gap-2">
+							<input name="Rating" type="radio" class="form-check-input star-input" value="1" id="star1" required />
+							<label class="star" for="star1"><i id="s1" data-rating="1" class="far fa-star star-label"></i></label>
+
+							<input name="Rating" type="radio" class="form-check-input star-input" value="2" id="star2" />
+							<label class="star" for="star2"><i id="s2" data-rating="2" class="far fa-star star-label"></i></label>
+
+							<input name="Rating" type="radio" class="form-check-input star-input" value="3" id="star3" />
+							<label class="star" for="star3"><i id="s3" data-rating="3" class="far fa-star star-label"></i></label>
+
+							<input name="Rating" type="radio" class="form-check-input star-input" value="4" id="star4" />
+							<label class="star" for="star4"><i id="s4" data-rating="4" class="far fa-star star-label"></i></label>
+
+							<input name="Rating" type="radio" class="form-check-input star-input" value="5" id="star5" />
+							<label class="star" for="star5"><i id="s5" data-rating="5" class="far fa-star star-label"></i></label>
+						</div>
+					</div>
+
+
+					<div class="form-group mb-3">
+
+						<input name="Text" id="text" type="text" class="form-control" required placeholder="What did you like or dislike about this book?" />
+					</div>
+
+					<button type="submit" class="btn-custom fs-5">Submit Review</button>
+				</form>
+			</div>
+		</div>
+</section>
+
+<section>
+	<div class="container p-5 text-white fw-lighter">
+		<div class="row">
+			<div class="col-lg-6 offset-lg-3">
+				@if (Model.Book.Reviews.Any())
+				{
+					<h2 class="pb-3 display-4">Reviews</h2>
+					@foreach (var review in Model.Book.Reviews)
+					{
+						<div class="review-box p-3 mb-3">
+							<div class="d-flex justify-content-between align-items-center">
+								<p class="fw-bold mb-0">@review.User.Name</p>
+
+								<p class="mb-0">@review.CreatedAt.ToString("dd.MM.yyyy.")</p>
+
+							</div>
+
+							<div>
+								@for (int i = 0; i < review.Rating; i++)
+								{
+									<i class="fas fa-star"></i>
+								}
+								@for (int i = review.Rating; i < 5; i++)
+								{
+									<i class="far fa-star"></i>
+								}
+							</div>
+							<p class="mb-0 mt-3">@review.Text</p>
+						</div>
+					}
+
+					if (Model.Book.Reviews.Count() > 3)
+					{
+						<button id="viewMoreReviews" class="btn-custom fs-5 px-3">View more reviews...</button>
+					}
+				}
+			</div>
+		</div>
+	</div>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+@* 		<p>Author: @Model.Book.Author</p>
+		<p>Publisher: @Model.Book.Publisher</p>
+		<p>Year of publication: @Model.Book.YearOfPublication</p>
+		<p>Number of pages: @Model.Book.NumberOfPages</p>
+		<p>Available quantity: @Model.Book.AvailableQuantity</p>
+
+		@if (Model.Book.AvailableQuantity > 0)
+		{
+			@if (User.Identity.IsAuthenticated)
+			{
+				<form asp-controller="Loan" asp-action="Create" method="post">
+					<input name="id" value="@Model.Book.Id" type="hidden" />
+					<button type="submit" class="btn btn-primary">Borrow Book</button>
+				</form>
+			}
+			else
+			{
+				<p>Log in to the application to borrow a book.</p>
+			}
+		}
+		else
+		{
+			<p>Sorry, the book is currently out of stock.</p>
+		}
+
+		@if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+		{
+			<a href="@Url.Action("Edit","Book", new{ id = @Model.Book.Id})" class="btn btn-primary">Edit book</a>
+
+			<form asp-action="Delete" method="post">
+				<input name="id" value="@Model.Book.Id" type="hidden" />
+				<button type="submit" class="btn btn-danger">Delete</button>
+			</form>
+		}
+
+		<form asp-action="Review" asp-controller="Book" method="get">
+			<input type="hidden" name="id" value="@Model.Book.Id" />
+			<button type="submit" class="btn btn-primary">Review this Book</button>
+		</form>
+
+
+		@if (Model.Book.Reviews.Any())
+		{
+			<h3 class="fw-bold">
+				@Model.AverageRating.ToString("0.0")
+
+				@for (int i = 0; i < (int)Model.AverageRating; i++)
+				{
+					<i class="fas fa-star"></i>
+				}
+
+				@if (Model.AverageRating != (int)Model.AverageRating)
+				{
+					@if (Model.AverageRating <= (int)Model.AverageRating + 0.2)
+					{
+						<i class="far fa-star"></i>
+					}
+					else if (Model.AverageRating <= (int)Model.AverageRating + 0.8)
+					{
+						<i class="fas fa-star-half-alt"></i>
+					}
+					else
+					{
+						<i class="fas fa-star"></i>
+					}
+				}
+
+				@for (int i = (int)Model.AverageRating + 1; i < 5; i++)
+				{
+					<i class="far fa-star"></i>
+				}
+			</h3>
+			<p>@Model.Book.Reviews.Count() Reviews</p>
+
+			<button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#reviewsModal">Past reviews</button>
+
+
+			<div class="modal fade" id="reviewsModal" tabindex="-1" aria-labelledby="reviewsModalLabel" aria-hidden="true">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="reviewsModalLabel">@Model.Book.Title @Model.Book.Author</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+							@foreach (var review in Model.Book.Reviews)
+							{
+								<div class="mb-3">
+									<div class="d-flex justify-content-between align-items-center">
+										<div>
+											@for (int i = 0; i < review.Rating; i++)
+											{
+												<i class="fas fa-star"></i>
+											}
+											@for (int i = review.Rating; i < 5; i++)
+											{
+												<i class="far fa-star"></i>
+											}
+										</div>
+
+										<span>@review.CreatedAt.ToString("dd.MM.yyyy.")</span>
+
+									</div>
+
+									<strong>@review.User.UserName</strong>
+
+									<p>@review.Text</p>
+									<hr />
+								</div>
+							}
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		} *@
+
+
+
+
+<style>
+	.book-img {
+		width: 100%;
+		border-radius: 10px;
+	}
+
+	.review-box {
+		border-left: 5px solid white;
+		background-color: #1D1838;
+		border-radius: 10px;
+	}
+
+	.book-details {
+		background-color: #410088;
+		border-radius: 10px;
+	}
+
+	.btn-dd {
+		padding: 0px 10px;
+		border-radius: 10px;
+	}
+
+	.dropdown-menu {
+		min-width: 8rem;
+		transform: translate(-96px, 32px) !important;
+	}
+
+
+	.dropdown-item:hover {
+		background-color: #6b40f6;
+		color: white;
+	}
+
+	.book-details-line {
+		width: 100%;
+		height: 2px;
+		background: linear-gradient(to right, #633ff6, #e755f7);
+	}
+
+	.star {
+		font-size: 30px;
+		cursor: pointer;
+	}
+
+	input[type="radio"] {
+		display: none;
+	}
+
+</style>
+
+
+@section Scripts {
+	<script>
+		const stars = document.querySelectorAll('.star-input');
+		const labels = document.querySelectorAll('.star-label');
+
+		stars.forEach(star => {
+			star.addEventListener("click", function () {
+				labels.forEach(label => {
+					if (star.value >= label.dataset.rating) {
+						label.className = "fas fa-star star-label";
+					}
+					else {
+						label.className = "far fa-star star-label";
+					}
+				});
+			});
+		});
+
+		// function checkOverflow() {
+		// 	let summaryText = document.getElementById("summaryText");
+		// 	let readMoreBtn = document.getElementById("readMore");
+
+		// 	if (!(summaryText.scrollHeight > summaryText.clientHeight)) {
+		// 		readMoreBtn.style.display = "none"; // Prikaži dugme
+		// 	} else {
+		// 		readMoreBtn.style.display = "inline"; // Prikaži dugme
+		// 	}
+		// }
+		// window.addEventListener("resize", checkOverflow);
+
+		let summaryText = document.getElementById("summaryText");
+		var readMore = document.getElementById("readMore");
+
+
+		if (!(summaryText.scrollHeight > summaryText.clientHeight)) {
+			readMore.style.display = "none";
+		}
+
+
+		readMore.addEventListener("click", function () {
+			let text = document.getElementById("summaryText");
+			text.classList.toggle("expanded");
+
+			if (text.classList.contains("expanded")) {
+				this.textContent = "Read less...";
+			} else {
+				this.textContent = "Read more...";
+			}
+		});
+
+
+		var reviews = document.querySelectorAll(".review-box");
+		var expanded = false;
+
+		reviews.forEach((review, index) => {
+			if (index >= 3) {
+				review.style.display = 'none';
+			}
+		});
+
+		var viewMoreReviews = document.getElementById("viewMoreReviews")
+		if (viewMoreReviews) {
+			viewMoreReviews.addEventListener("click", function () {
+				if (expanded) {
+					reviews.forEach((review, index) => {
+						if (index >= 3) {
+							review.style.display = 'none';
+						}
+					});
+					this.textContent = "View more reviews...";
+					expanded = false;
+				} else {
+					reviews.forEach((review, index) => {
+						review.style.display = 'block';
+					});
+					this.textContent = "View less reviews...";
+					expanded = true;
+				}
+			});
+		}
+
+
+	</script>
+}
