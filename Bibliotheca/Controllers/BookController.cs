@@ -1,15 +1,10 @@
 ﻿using Bibliotheca.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Bibliotheca.Models;
-using Bibliotheca.Models.enums;
 using Microsoft.AspNetCore.Authorization;
 using Bibliotheca.Models.ViewModels;
-using System.Drawing.Printing;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Identity;
-using System.Net;
 using NuGet.Packaging;
-
 
 namespace Bibliotheca.Controllers
 {
@@ -20,16 +15,14 @@ namespace Bibliotheca.Controllers
 		public BookController(IUnitOfWork unitOfWork)
 		{
 			_unitOfWork = unitOfWork;
-	}
+		}
 
 		public async Task<IActionResult> Index(string title, string author, List<string> Categories, int pageCount = 1, int pageSize = 12)
 		{
 			var books = _unitOfWork.BookService.GetAllFilteredBooks(title, author, Categories);
-			var categories = _unitOfWork.CategoryService.GetAllCategories();
 
 			var totalPages = (int)Math.Ceiling((double)books.Count() / pageSize);
 			pageCount = (pageCount < 1) ? 1 : (pageCount > totalPages ? totalPages : pageCount);
-
 			books = books.Skip(pageSize * (pageCount - 1)).Take(pageSize);
 
 			var modelView = new BookIndexViewModel()
@@ -39,87 +32,57 @@ namespace Bibliotheca.Controllers
 				{
 					TotalPages = totalPages,
 					PageCount = pageCount,
-					PageSize = pageSize
+					PageSize = pageSize,
+					Title = title,
+					Author = author,
+					SelectedCategories = _unitOfWork.CategoryService.GetCategoriesByNames(Categories)
 				},
-				Categories = categories
+				Categories = _unitOfWork.CategoryService.GetAllCategories()
 			};
 
-		
 			return View(modelView);
 		}
 
 		public async Task<IActionResult> Details(int id)
 		{
-			var book = _unitOfWork.BookService.GetBookById(id);
+			var book = _unitOfWork.BookService.GetBookWithReviewsAndUsersById(id);
+			if (book == null) return NotFound();
 
-            var averageRating = book.Reviews.Any() ? _unitOfWork.ReviewService.GetAverageRatingByBookId(book.Id) : 0;
-
-            var viewModel = new BookDetailViewModel()
-            {
-                Book = book,
-                AverageRating = averageRating
-            };
-
-            return View(viewModel);
-		}
-
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create()
-		{
-			var categories = _unitOfWork.CategoryService.GetAllCategories();
-			return View(new Book { Categories = categories, YearOfPublication = DateTime.Now.Year, NumberOfPages = 200, AvailableQuantity = 10});
-		}
-
-        [Authorize(Roles = "Admin")]
-        [HttpPost]
-		public async Task<IActionResult> Create(Book book, IFormFile file, IEnumerable<int> categories)
-		{
-			if (ModelState.IsValid)
-			{
-                if (file != null)
-                {
-                    string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\images\\books");
-                    path = $"{path}\\{book.Title}-{book.Author}.jpg";
-
-                    FileStream stream = new FileStream(path, FileMode.Create);
-                    file.CopyTo(stream);
-
-                    book.ImageUrl = $"{book.Title}-{book.Author}.jpg"; ;
-                }
-
-                var selectedCategories = _unitOfWork.CategoryService.GetCategoriesByIds(categories);
-
-				book.Categories = selectedCategories;
-
-                _unitOfWork.BookService.AddBook(book);
-				_unitOfWork.SaveChanges();
-
-				return RedirectToAction("Index");
-            }
-			return View(book);
-		}
-
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(int id)
-		{
-			var book = _unitOfWork.BookService.GetBookById(id);
-			var allCategories = _unitOfWork.CategoryService.GetAllCategories();
-
-			var viewModel = new BookEditViewModel()
+			var viewModel = new BookDetailViewModel()
 			{
 				Book = book,
-				AllCategories = allCategories
+				AverageRating = _unitOfWork.ReviewService.GetAverageRatingByBookId(book.Id)
 			};
-
 
 			return View(viewModel);
 		}
 
-        [Authorize(Roles = "Admin")]
-        [HttpPost]
-		public async Task<IActionResult> Edit(Book book, IFormFile? file, ICollection<int> categories)
+		[Authorize(Roles = "Admin")]
+		public async Task<IActionResult> Create()
 		{
-			var thisBook = _unitOfWork.BookService.GetBookById(book.Id);
+			var book = new Book
+			{
+				YearOfPublication = DateTime.Now.Year,
+				NumberOfPages = 200,
+				AvailableQuantity = 10,
+				Categories = new List<Category>()
+			};
+
+			var viewModel = new BookCreateViewModel()
+			{
+				Book = book,
+				AllCategories = _unitOfWork.CategoryService.GetAllCategories()
+			};
+
+			return View(viewModel);
+		}
+
+		[Authorize(Roles = "Admin")]
+		[HttpPost]
+		public async Task<IActionResult> Create(Book book, IFormFile file, IEnumerable<int> categories)
+		{
+			book.Categories = _unitOfWork.CategoryService.GetCategoriesByIds(categories);
+
 			if (ModelState.IsValid)
 			{
 				if (file != null)
@@ -127,22 +90,71 @@ namespace Bibliotheca.Controllers
 					string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\images\\books");
 					path = $"{path}\\{book.Title}-{book.Author}.jpg";
 
-					FileStream stream = new FileStream(path, FileMode.Create);
-					file.CopyTo(stream);
+					using (FileStream stream = new FileStream(path, FileMode.Create))
+					{
+						file.CopyTo(stream);
+					}
 
 					book.ImageUrl = $"{book.Title}-{book.Author}.jpg"; ;
 				}
-				else
+
+				_unitOfWork.BookService.AddBook(book);
+				_unitOfWork.SaveChanges();
+
+				TempData["Message"] = "The book has been successfully created!";
+
+				return RedirectToAction("Details", new { id = book.Id });
+			}
+
+			var viewModel = new BookCreateViewModel()
+			{
+				Book = book,
+				AllCategories = _unitOfWork.CategoryService.GetAllCategories()
+			};
+
+			return View(viewModel);
+		}
+
+		[Authorize(Roles = "Admin")]
+		public async Task<IActionResult> Edit(int id)
+		{
+			var book = _unitOfWork.BookService.GetBookById(id);
+			if (book == null) return NotFound();
+
+			var viewModel = new BookCreateViewModel()
+			{
+				Book = book,
+				AllCategories = _unitOfWork.CategoryService.GetAllCategories()
+			};
+
+			return View(viewModel);
+		}
+
+		[Authorize(Roles = "Admin")]
+		[HttpPost]
+		public async Task<IActionResult> Edit(Book book, IFormFile? file, ICollection<int> categories)
+		{
+			var thisBook = _unitOfWork.BookService.GetBookById(book.Id);
+			if (thisBook == null) return NotFound();
+
+			thisBook.Categories.Clear();
+			thisBook.Categories = thisBook.Categories.ToList();
+			thisBook.Categories.AddRange(_unitOfWork.CategoryService.GetCategoriesByIds(categories));
+
+			if (ModelState.IsValid)
+			{
+				if (file != null)
 				{
-					book.ImageUrl = thisBook.ImageUrl;
+					string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\images\\books");
+					path = $"{path}\\{book.Title}-{book.Author}.jpg";
+
+					using (FileStream stream = new FileStream(path, FileMode.Create))
+					{
+						file.CopyTo(stream);
+					}
+
+					thisBook.ImageUrl = $"{book.Title}-{book.Author}.jpg"; ;
 				}
-
-				var selectedCategories = _unitOfWork.CategoryService.GetCategoriesByIds(categories);
-
-				thisBook.Categories.Clear();
-				thisBook.Categories = thisBook.Categories.ToList();
-				thisBook.Categories.AddRange(selectedCategories);
-
 
 				thisBook.Title = book.Title;
 				thisBook.Author = book.Author;
@@ -152,79 +164,67 @@ namespace Bibliotheca.Controllers
 				thisBook.NumberOfPages = book.NumberOfPages;
 				thisBook.AvailableQuantity = book.AvailableQuantity;
 
-
 				_unitOfWork.BookService.UpdateBook(thisBook);
 				_unitOfWork.SaveChanges();
 
-				return RedirectToAction("Details", new { id = book.Id });
+				TempData["Message"] = "The changes have been successfully saved!";
+
+				return RedirectToAction("Details", new { id = thisBook.Id });
 			}
 
-			book = _unitOfWork.BookService.GetBookById(book.Id);
-			var allCategories = _unitOfWork.CategoryService.GetAllCategories();
-
-			var viewModel = new BookEditViewModel()
+			var viewModel = new BookCreateViewModel()
 			{
-				Book = book,
-				AllCategories = allCategories
+				Book = thisBook,
+				AllCategories = _unitOfWork.CategoryService.GetAllCategories()
 			};
-
 
 			return View(viewModel);
 		}
 
-        [Authorize(Roles = "Admin")]
-        [HttpPost]
+		[Authorize(Roles = "Admin")]
+		[HttpPost]
 		public async Task<IActionResult> Delete(int id)
 		{
 			_unitOfWork.BookService.DeleteBook(id);
 			_unitOfWork.SaveChanges();
 
-			var books = _unitOfWork.BookService.GetAllBooks();
+			TempData["Message"] = "The book has been successfully deleted!";
 
-			//TempData["Message"] = "Book successfully deleted!";
 			return RedirectToAction("Index");
 		}
 
-		public async Task<IActionResult> Review(int id)
+		[Authorize]
+		[HttpPost]
+		public async Task<IActionResult> Review(Review review)
 		{
-			var book = _unitOfWork.BookService.GetBookById(id);
-
+			var book = _unitOfWork.BookService.GetBookById(review.BookId);
 			if (book == null) return NotFound();
 
-			return View(new ReviewViewModel { BookId = book.Id, Title = book.Title, Author = book.Author });
+			var userId = User.Identity.IsAuthenticated ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
+			review.UserId = userId;
+
+			if (ModelState.IsValid)
+			{
+				review.CreatedAt = DateTime.Now;
+				_unitOfWork.ReviewService.AddReview(review);
+				_unitOfWork.SaveChanges();
+
+				TempData["Message"] = "Your review has been successfully submitted.";
+			}
+
+			return RedirectToAction("Details", new { id = book.Id });
 		}
 
-        [HttpPost]
-        public async Task<IActionResult> Review(Review review)
-        {
-            var book = _unitOfWork.BookService.GetBookById(review.BookId);
-            
-            if (book == null) return NotFound();
+		[Authorize(Roles = "Admin")]
+		[HttpPost]
+		public async Task<IActionResult> DeleteReview(int reviewId, int bookId)
+		{
+			_unitOfWork.ReviewService.DeleteReview(reviewId);
+			_unitOfWork.SaveChanges();
 
-            var userId = User.Identity.IsAuthenticated ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
-            review.UserId = userId;
+			TempData["Message"] = "The review has been successfully deleted.";
 
-
-            if (ModelState.IsValid)
-            {
-                review.CreatedAt = DateTime.Now;
-                _unitOfWork.ReviewService.AddReview(review);
-                _unitOfWork.SaveChanges();
-
-				book = _unitOfWork.BookService.GetBookById(book.Id);
-
-				var averageRating = book.Reviews.Any() ? _unitOfWork.ReviewService.GetAverageRatingByBookId(book.Id) : 0;
-
-				var viewModel = new BookDetailViewModel()
-				{
-					Book = book,
-					AverageRating = averageRating
-				};
-
-				return RedirectToAction("Details", new { id = book.Id });
-            }
-
-            return View(new ReviewViewModel { BookId = book.Id, Title = book.Title, Author = book.Author });
-        }
-    }
+			return RedirectToAction("Details", new { id = bookId });
+		}
+	}
 }

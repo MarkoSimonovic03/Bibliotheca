@@ -24,12 +24,11 @@ namespace Bibliotheca.Controllers
 		public IActionResult Create(int id)
 		{
 			var book = _unitOfWork.BookService.GetBookById(id);
+			if (book == null) return NotFound();
 
 			var userId = User.Identity.IsAuthenticated ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
-			if (userId == null)
-			{
-				throw new Exception("User not authorized");
-			}
+
+			if (book.AvailableQuantity <= 0) return BadRequest("The book is out of stock.");
 
 			book.AvailableQuantity -= 1;
 
@@ -46,20 +45,15 @@ namespace Bibliotheca.Controllers
 			_unitOfWork.BookService.UpdateBook(book);
 			_unitOfWork.SaveChanges();
 
-			var vm = new LoanConfirmationViewModel()
-			{
-				Book = book,
-				Loan = loan
-			};
+			TempData["Message"] = "The book has been successfully loaned!";
 
-			return View("Confirmation", vm);
+			return RedirectToAction("UserLoans");
 		}
 
-
 		[Authorize(Roles = "Admin")]
-		public IActionResult AllLoans(string username, List<string> loanStatus, DateOnly? loanDate, int pageCount = 1, int pageSize = 5)
+		public IActionResult AllLoans(string email, List<string> loanStatus, DateOnly? loanDate, int pageCount = 1, int pageSize = 5)
 		{
-			var loans = _unitOfWork.LoanService.GetAllLoansWithUsersAndBooks(username, loanStatus, loanDate);
+			var loans = _unitOfWork.LoanService.GetAllLoansWithUsersAndBooks(email, loanStatus, loanDate);
 
 			var totalPages = (int)Math.Ceiling((double)loans.Count() / pageSize);
 			pageCount = (pageCount < 1) ? 1 : (pageCount > totalPages ? totalPages : pageCount);
@@ -72,22 +66,19 @@ namespace Bibliotheca.Controllers
 				{
 					TotalPages = totalPages,
 					PageCount = pageCount,
-					PageSize = pageSize
+					PageSize = pageSize,
+					LoanStatus = loanStatus,
+					LoanDate = loanDate,
+					Email = email
 				}
 			};
 
 			return View(modelView);
 		}
 
-
-		[Authorize]
 		public IActionResult UserLoans(List<string> loanStatus, DateOnly? loanDate, int pageCount = 1, int pageSize = 5)
 		{
 			var userId = User.Identity.IsAuthenticated ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
-			if (userId == null)
-			{
-				throw new Exception("User not authorized");
-			}
 
 			var loans = _unitOfWork.LoanService.GetLoansByUserId(userId, loanStatus, loanDate);
 
@@ -102,92 +93,43 @@ namespace Bibliotheca.Controllers
 				{
 					TotalPages = totalPages,
 					PageCount = pageCount,
-					PageSize = pageSize
+					PageSize = pageSize,
+					LoanStatus = loanStatus,
+					LoanDate = loanDate
 				}
 			};
 
 			return View(modelView);
 		}
 
+
 		[Authorize(Roles = "Admin")]
+		[HttpPost]
 		public async Task<IActionResult> ReturnAdminLoan(int id)
 		{
 			_unitOfWork.LoanService.ReturnLoan(id);
 			_unitOfWork.SaveChanges();
 
+			TempData["Message"] = "The book has been successfully returned!";
+
 			return RedirectToAction("AllLoans");
 		}
 
-
-		[Authorize]
+		[HttpPost]
 		public async Task<IActionResult> ReturnUserLoan(int id)
 		{
 			var userId = User.Identity.IsAuthenticated ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
-			if (userId == null)
-			{
-				throw new Exception("User not authorized");
-			}
 
 			var loan = _unitOfWork.LoanService.GetLoanById(id);
 
-			if(loan.UserId == userId)
+			if (loan.UserId == userId)
 			{
 				_unitOfWork.LoanService.ReturnLoan(id);
 				_unitOfWork.SaveChanges();
+				TempData["Message"] = "The book has been successfully returned!";
 			}
 
 			return RedirectToAction("UserLoans");
 		}
-
-		
-
-
-		//[Authorize(Roles = "Admin")]
-		//[HttpPost]
-		//public async Task<IActionResult> ReturnAllLoans(int id)
-		//{
-		//	var loan = _unitOfWork.LoanService.GetLoanById(id);
-		//	loan.LoanStatus = LoanStatus.Returned;
-
-		//	var book = _unitOfWork.BookService.GetBookById(loan.BookId);
-		//	book.AvailableQuantity += 1;
-
-		//	_unitOfWork.LoanService.UpdateLoan(loan);
-		//	_unitOfWork.BookService.UpdateBook(book);
-		//	_unitOfWork.SaveChanges();
-
-		//	var loans = _unitOfWork.LoanService.GetAllLoansWithUsersAndBooks();
-
-		//	TempData["Message"] = "Book successfully returned!";
-		//	return View("AllLoans", loans);
-		//}
-
-
-
-
-		//[HttpPost]
-		//public async Task<IActionResult> ReturnUserLoans(int id)
-		//{
-		//	var loan = _unitOfWork.LoanService.GetLoanById(id);
-		//	loan.LoanStatus = LoanStatus.Returned;
-
-		//	var book = _unitOfWork.BookService.GetBookById(loan.BookId);
-		//	book.AvailableQuantity += 1;
-
-		//	_unitOfWork.LoanService.UpdateLoan(loan);
-		//	_unitOfWork.BookService.UpdateBook(book);
-		//	_unitOfWork.SaveChanges();
-
-		//	var userId = User.Identity.IsAuthenticated ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
-		//	if (userId == null)
-		//	{
-		//		throw new Exception("User not authorized");
-		//	}
-
-		//	var loans = _unitOfWork.LoanService.GetLoansByUserId(userId);
-
-		//	TempData["Message"] = "Book successfully returned!";
-		//	return View("UserLoans", loans);
-		//}
 	}
 }

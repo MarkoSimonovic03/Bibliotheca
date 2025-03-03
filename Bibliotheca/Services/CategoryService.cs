@@ -21,7 +21,12 @@ namespace Bibliotheca.Services
             return _context.Categories.Where(c => ids.Contains(c.Id)).ToList();
         }
 
-        public Category GetCategoryById(int id)
+		public ICollection<Category> GetCategoriesByNames(List<string> categories)
+		{
+			return _context.Categories.Where(c => categories.Contains(c.Name)).ToList();
+		}
+
+		public Category GetCategoryById(int id)
 		{
 			var category = _context.Categories.Find(id);
 			if (category == null )

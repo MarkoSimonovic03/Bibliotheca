@@ -1,8 +1,7 @@
-﻿using System.Net;
-using Bibliotheca.Interfaces;
+﻿using Bibliotheca.Interfaces;
 using Bibliotheca.Models;
 using Microsoft.EntityFrameworkCore;
-
+using NuGet.Packaging.Signing;
 
 namespace Bibliotheca.Services
 {
@@ -13,6 +12,7 @@ namespace Bibliotheca.Services
 		{
 			_context = context;
 		}
+
 		public IEnumerable<Book> GetAllBooks()
 		{
 			return _context.Books.Include(b => b.Categories).Where(b => !b.IsDeleted).ToList();
@@ -40,10 +40,10 @@ namespace Bibliotheca.Services
 				books = books.Where(b => categories.All(c => b.Categories.Any(bookCategory => bookCategory.Name == c)));
 			}
 
-
 			return books.ToList();
 		}
-		public Book GetBookById(int id)
+
+		public Book GetBookWithReviewsAndUsersById(int id)
 		{
 			var book = _context.Books
 				.Include(b => b.Categories)
@@ -55,6 +55,15 @@ namespace Bibliotheca.Services
 			{
 				book.Reviews = book.Reviews.OrderByDescending(r => r.CreatedAt).ToList();
 			}
+
+			return book;
+		}
+
+		public Book GetBookById(int id)
+		{
+			var book = _context.Books
+				.Include(b => b.Categories)
+				.FirstOrDefault(b => b.Id == id && !b.IsDeleted);
 
 			return book;
 		}
@@ -79,6 +88,5 @@ namespace Bibliotheca.Services
 				_context.Books.Update(book);
 			}
 		}
-
 	}
 }

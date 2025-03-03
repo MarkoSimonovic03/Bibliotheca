@@ -1,24 +1,11 @@
-﻿const prev = document.getElementById("prev");
-const next = document.getElementById("next");
+﻿var alertBox = document.getElementById("alertBox");
+var alertClose = document.getElementById("alertClose");
 
-const pageCount = document.getElementById("pageCount");
-
-const btns = document.querySelectorAll('.btn-page');
-
-btns.forEach(button => {
-	button.addEventListener('click', () => {
-		pageCount.value = Number(button.dataset.count);
-	});
-});
-
-if (prev) {
-	prev.addEventListener('click', function () {
-		pageCount.value = Number(pageCount.value) - 1;
-	})
+function hideAlert() {
+	alertBox.classList.add("alert-box-hidden");
 }
 
-if (next) {
-	next.addEventListener('click', function () {
-		pageCount.value = Number(pageCount.value) + 1;
-	})
+if (alertBox) {
+	setTimeout(hideAlert, 5000);
+	alertClose.addEventListener("click", hideAlert);
 }

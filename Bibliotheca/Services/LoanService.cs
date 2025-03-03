@@ -23,23 +23,7 @@ namespace Bibliotheca.Services
             return _context.Loans.Find(id);
         }
 
-        //public IEnumerable<Loan> GetLoansByUserId(string userId)
-        //{
-        //    var loans = _context.Loans.Where(l => l.UserId == userId).Include(l => l.Book).ToList();
 
-        //    foreach (var loan in loans)
-        //    {
-
-        //        if (loan.LoanStatus == LoanStatus.InProgress && loan.DueDate < DateOnly.FromDateTime(DateTime.Now))
-        //        {
-        //            loan.LoanStatus = LoanStatus.Overdue;
-        //        }
-        //    }
-
-        //    _context.SaveChanges();
-
-        //    return loans;
-        //}
 
         public IEnumerable<Loan> GetLoansByUserId(string userId, List<string> loanStatus, DateOnly? loanDate)
         {
@@ -122,7 +106,7 @@ namespace Bibliotheca.Services
 
             if (!string.IsNullOrEmpty(email))
             {
-                loans = loans.Where(l => l.User.UserName.ToUpper().Contains(email.Trim().ToUpper()));
+                loans = loans.Where(l => l.User.Email.ToUpper().Contains(email.Trim().ToUpper()));
             }
 
             if (loanStatus != null && loanStatus.Any())

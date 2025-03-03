@@ -1,9 +1,31 @@
 ﻿@model Bibliotheca.Models.ViewModels.PaginationViewModel
+
 @{
 	var pages = new List<int>();
 	var TotalPages = Model.TotalPages;
 	var PageCount = Model.PageCount;
 	var PageSize = Model.PageSize;
+
+	var email = Model.Email ?? string.Empty;
+	var loanStatus = (Model.LoanStatus != null && Model.LoanStatus.Any()) ? string.Join(",", Model.LoanStatus) : string.Empty;
+	var loanDate = Model.LoanDate?.ToString("MM/dd/yyyy") ?? string.Empty;
+	var title = Model.Title ?? string.Empty;
+	var author = Model.Author ?? string.Empty;
+	var categories = (Model.SelectedCategories != null && Model.SelectedCategories.Any()) ? string.Join(",", Model.SelectedCategories) : string.Empty;
+
+	string BuildQueryString(int page)
+	{
+		var queryParams = new List<string> { $"pageCount={page}", $"pageSize={PageSize}" };
+
+		if (!string.IsNullOrWhiteSpace(email)) queryParams.Add($"email={email}");
+		if (!string.IsNullOrWhiteSpace(title)) queryParams.Add($"title={title}");
+		if (!string.IsNullOrWhiteSpace(author)) queryParams.Add($"author={author}");
+		if (!string.IsNullOrWhiteSpace(categories)) queryParams.Add($"categories={categories}");
+		if (!string.IsNullOrWhiteSpace(loanStatus)) queryParams.Add($"loanStatus={loanStatus}");
+		if (!string.IsNullOrWhiteSpace(loanDate)) queryParams.Add($"loanDate={loanDate}");
+
+		return "?" + string.Join("&", queryParams);
+	}
 
 	if (PageCount <= 5)
 	{
@@ -29,74 +51,42 @@
 		pages.AddRange(new[] { PageCount + 1, PageCount + 2, -1, TotalPages });
 	}
 }
-<input type="hidden" name="pageCount" id="pageCount" value="@PageCount" />
-<input type="hidden" name="pageSize" id="pageSize" value="@PageSize" />
+@* <input type="hidden" name="pageCount" id="pageCount" value="@PageCount" />
+<input type="hidden" name="pageSize" id="pageSize" value="@PageSize" /> *@
 
 @if (TotalPages > 1)
 {
 	<section>
 		<div class="container px-5 pb-5">
-			<div class="d-flex justify-content-center align-items-center gap-2">
+			<div class="d-flex justify-content-center align-items-center gap-2 text-center">
 				@if (PageCount > 1 && TotalPages>2)
 				{
-					<div class="pag-el">
-						<button type="submit" id="prev">Prev</button>
+					<div class="pagination-element">
+						<a href="@BuildQueryString(PageCount - 1)" class="pagination-link pagination-prev">Prev</a>
 					</div>
 				}
 
-				<div class="pag-el g-line">
-					@foreach (var item in pages)
+				<div class="pagination-element pagination-links">
+					@foreach (var i in pages)
 					{
-						if (item != -1)
+						if (i != -1)
 						{
-							<button type="submit" data-count="@item" class="btn-page @(item == PageCount ? "current-page" : "")">@item</button>
+							<a href="@BuildQueryString(i)" class="pagination-link @(i == PageCount ? "pagination-current" : "")">@i</a>
 						}
 						else
 						{
-							<div class="d-flex align-items-center px-3 btn-empty">
-							<span>...</span>
-							</div>
-
+							<div class="d-flex align-items-center px-3 pagination-empty"><span>...</span></div>
 						}
 					}
 				</div>
 
 				@if (PageCount < TotalPages && TotalPages > 2)
 				{
-					<div class="pag-el">
-						<button type="submit" id="next">Next</button>
+					<div class="pagination-element">
+						<a href="@BuildQueryString(PageCount + 1)" class="pagination-link pagination-next">Next</a>
 					</div>
 				}
 			</div>
 		</div>
 	</section>
 }
-
-@* @section Scripts {
-	<script>
-		const prev = document.getElementById("prev");
-		const next = document.getElementById("next");
-
-		const pageCount = document.getElementById("pageCount");
-
-		const btns = document.querySelectorAll('.btn-page');
-
-		btns.forEach(button => {
-			button.addEventListener('click', () => {
-				pageCount.value = Number(button.dataset.count);
-			});
-		});
-
-		if (prev) {
-			prev.addEventListener('click', function () {
-				pageCount.value = Number(pageCount.value) - 1;
-			})
-		}
-
-		if (next) {
-			next.addEventListener('click', function () {
-				pageCount.value = Number(pageCount.value) + 1;
-			})
-		}
-	</script>
-} *@

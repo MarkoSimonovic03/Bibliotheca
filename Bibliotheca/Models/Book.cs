@@ -6,23 +6,30 @@ namespace Bibliotheca.Models
     {
         [Required]
         public int Id { get; set; }
+
         [Required]
         public string Title { get; set; }
+
         [Required]
         [StringLength(3000, ErrorMessage = "Summary cannot exceed 3000 characters.")]
         public string Summary { get; set; }
+
         [Required]
         public string Author { get; set; }
+
         public string Publisher { get; set; }
+
         [Display(Name = "Year of publication")]
         [Range(1, int.MaxValue)]
         public int YearOfPublication { get; set; }
+
         [Display(Name = "Number of pages")]
         [Range(1, int.MaxValue)]
         public int NumberOfPages { get; set; }
+
         [Required]
         [Display(Name = "Available quantity")]
-        [Range(1, int.MaxValue)]
+        [Range(0, int.MaxValue)]
         public int AvailableQuantity { get; set; }
         [Required]
         public bool IsDeleted {  get; set; }

@@ -64,6 +64,18 @@
 	</header>
 
 	<main role="main">
+		@if (TempData["Message"] != null)
+		{
+			<div class="alert-box fw-light" id="alertBox">
+				<div class="d-flex justify-content-end">
+					<i class="fas fa-times cursor-pointer" id="alertClose"></i>
+				</div>
+				<div class="px-4 fs-5">
+				@TempData["Message"]
+				</div>
+			</div>
+		}
+
 		@RenderBody()
 	</main>
 

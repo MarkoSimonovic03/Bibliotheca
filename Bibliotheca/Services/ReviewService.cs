@@ -13,21 +13,6 @@ namespace Bibliotheca.Services
 			_context = context;
 		}
 
-		public void AddReview(Review review)
-		{
-			_context.Reviews.Add(review);
-		}
-
-		public void DeleteReview(int id)
-		{
-			var review = _context.Reviews.Find(id);
-
-			if (review != null)
-			{
-				_context.Remove(review);
-			}
-		}
-
 		public IEnumerable<Review> GetAllReviews()
 		{
 			return _context.Reviews.ToList();
@@ -40,7 +25,8 @@ namespace Bibliotheca.Services
 
 		public IEnumerable<Review> GetReviewsByBookId(int bookId)
 		{
-			var reviews = _context.Reviews.Include(x => x.User)
+			var reviews = _context.Reviews
+			   .Include(x => x.User)
 			   .Where(r => r.BookId == bookId)
 			   .OrderByDescending(r => r.CreatedAt)
 			   .ToList();
@@ -48,14 +34,33 @@ namespace Bibliotheca.Services
 			return reviews;
 		}
 
+		public void AddReview(Review review)
+		{
+			_context.Reviews.Add(review);
+		}
 
 		public void UpdateReview(Review review)
 		{
 			_context.Reviews.Update(review);
 		}
 
+		public void DeleteReview(int id)
+		{
+			var review = _context.Reviews.Find(id);
+
+			if (review != null)
+			{
+				_context.Reviews.Remove(review);
+			}
+		}
+
 		public double GetAverageRatingByBookId(int bookId)
 		{
+			if(!_context.Reviews.Where(r => r.BookId == bookId).Any())
+			{
+				return 0;
+			}
+
 			var rating = _context.Reviews
 				.Where(r => r.BookId == bookId)
 				.Select(r => r.Rating)

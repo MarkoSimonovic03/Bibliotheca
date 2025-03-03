@@ -6,7 +6,8 @@ namespace Bibliotheca.Interfaces
     {
         IEnumerable<Book> GetAllBooks();
         IEnumerable<Book> GetAllFilteredBooks(string title, string author, List<string> categories);
-        Book GetBookById(int id);
+        Book GetBookWithReviewsAndUsersById(int id);
+		Book GetBookById(int id);
         void AddBook(Book book);
         void UpdateBook(Book book);
         void DeleteBook(int id);

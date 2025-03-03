@@ -1,79 +1,81 @@
-﻿@model Book
+﻿@model Bibliotheca.Models.ViewModels.BookCreateViewModel
 @{
 	ViewData["Title"] = "Add a Book";
 }
-<div class="bg-create-overlay"></div>
+<div class="underline-custom"></div>
 <section>
-	<div class="container p-5 text-white">
+	<div class="container p-5">
 		<div class="row">
-			<div class="col-md-8 offset-md-2 col-lg-6 offset-lg-3">
-				<h1 class="pb-4">Add a Book</h1>
-				<form asp-action="Create" method="post" enctype="multipart/form-data" class="fs-5">
-					<div class="form-group mb-4">
-						<label asp-for="Title" class="form-label fs-4"></label>
-						<input asp-for="Title" type="text" class="form-control" placeholder="Enter book title" required />
-						<span asp-validation-for="Title" class="text-danger"></span>
+			<div class="col-md-10 offset-md-1 col-lg-8 offset-lg-2 col-xl-6 offset-xl-3">
+				<form asp-action="Create" method="post" enctype="multipart/form-data" class="form-custom p-4 p-sm-5">
+					<h1>Add Book</h1>
+					<div class="underline-custom mb-4"></div>
+
+					<div class="form-group mb-3">
+						<label asp-for="Book.Title" class="px-2 fs-4"></label>
+						<input asp-for="Book.Title" type="text" class="form-control rounded-pill" placeholder="Enter book title" required />
+						<span asp-validation-for="Book.Title" class="text-danger"></span>
 					</div>
 
-					<div class="form-group mb-4">
-						<label asp-for="Author" class="form-label fs-4"></label>
-						<input asp-for="Author" type="text" class="form-control" placeholder="Enter author's name" required />
-						<span asp-validation-for="Author" class="text-danger"></span>
+					<div class="form-group mb-3">
+						<label asp-for="Book.Author" class="px-2 fs-4"></label>
+						<input asp-for="Book.Author" type="text" class="form-control rounded-pill" placeholder="Enter author's name" required />
+						<span asp-validation-for="Book.Author" class="text-danger"></span>
 					</div>
 
-					<div class="form-group mb-4">
-						<label asp-for="Summary" class="form-label fs-4"></label>
-						<textarea asp-for="Summary" class="form-control" rows="4" maxlength="3000" placeholder="Enter book summary" required></textarea>
-						<span asp-validation-for="Summary" class="text-danger"></span>
+					<div class="form-group mb-3">
+						<label asp-for="Book.Summary" class="px-2 fs-4"></label>
+						<textarea asp-for="Book.Summary" class="form-control" rows="4" maxlength="3000" placeholder="Enter book summary" required></textarea>
+						<span asp-validation-for="Book.Summary" class="text-danger"></span>
 					</div>
 
-					<div class="form-group mb-4">
-						<label asp-for="Publisher" class="form-label fs-4"></label>
-						<input asp-for="Publisher" type="text" class="form-control" placeholder="Enter publisher name" required />
-						<span asp-validation-for="Publisher" class="text-danger"></span>
+					<div class="form-group mb-3">
+						<label asp-for="Book.Publisher" class="px-2 fs-4"></label>
+						<input asp-for="Book.Publisher" type="text" class="form-control rounded-pill" placeholder="Enter publisher name" required />
+						<span asp-validation-for="Book.Publisher" class="text-danger"></span>
 					</div>
 
 					<div class="row">
-						<div class="col-6">
-							<div class="form-group mb-4">
-								<label asp-for="YearOfPublication" class="form-label fs-4"></label>
-								<input asp-for="YearOfPublication" type="number" min="1" max="@DateTime.Now.Year" class="form-control" required />
-								<span asp-validation-for="YearOfPublication" class="text-danger"></span>
+						<div class="col-md-6">
+							<div class="form-group mb-3">
+								<label asp-for="Book.YearOfPublication" class="px-2 fs-4"></label>
+								<input asp-for="Book.YearOfPublication" type="number" min="1" max="@DateTime.Now.Year" class="form-control rounded-pill" required />
+								<span asp-validation-for="Book.YearOfPublication" class="text-danger"></span>
 							</div>
 
-							<div class="form-group mb-4">
-								<label asp-for="NumberOfPages" class="form-label fs-4"></label>
-								<input asp-for="NumberOfPages" type="number" min="1" max="5000" class="form-control" required />
-								<span asp-validation-for="NumberOfPages" class="text-danger"></span>
+							<div class="form-group mb-3">
+								<label asp-for="Book.NumberOfPages" class="px-2 fs-4"></label>
+								<input asp-for="Book.NumberOfPages" type="number" min="1" max="5000" class="form-control rounded-pill" required />
+								<span asp-validation-for="Book.NumberOfPages" class="text-danger"></span>
 							</div>
 						</div>
-						<div class="col-5 offset-1">
-							<div class="form-group mb-4">
-								<label asp-for="Categories" class="form-label fs-4"></label>
-								@foreach (var category in Model.Categories)
+
+						<div class="col-md-6">
+							<div class="form-group mb-3">
+								<label asp-for="Book.Categories" class="px-2 fs-4"></label>
+								@foreach (var category in Model.AllCategories)
 								{
-									<div class="form-check">
-										<input class="form-check-input" type="checkbox" name="categories" value="@category.Id" id="category_@category.Id">
-										<label class="form-check-label" for="category_@category.Id">
-											@category.Name
-										</label>
+									bool isChecked = Model.Book.Categories.Any(c => c.Id == category.Id);
+
+									<div class="form-check fs-5">
+										<input class="form-check-input" type="checkbox" name="categories" value="@category.Id" id="category_@category.Id" @(isChecked ? "checked" : "") />
+										<label class="form-check-label" for="category_@category.Id">@category.Name</label>
 									</div>
 								}
 							</div>
 						</div>
+					</div>
 
+					<div class="form-group mb-3">
+						<label asp-for="Book.AvailableQuantity" class="px-2 fs-4"></label>
+						<input asp-for="Book.AvailableQuantity" type="number" min="0" max="5000" class="form-control rounded-pill" required />
+						<span asp-validation-for="Book.AvailableQuantity" class="text-danger"></span>
 					</div>
 
 					<div class="form-group mb-4">
-						<label asp-for="AvailableQuantity" class="form-label fs-4"></label>
-						<input asp-for="AvailableQuantity" type="number" min="1" max="5000" class="form-control" required />
-						<span asp-validation-for="AvailableQuantity" class="text-danger"></span>
-					</div>
-
-					<div class="form-group mb-4">
-						<label asp-for="ImageUrl" class="form-label fs-4">Upload Image</label>
-						<input asp-for="ImageUrl" name="file" type="file" class="form-control" required />
-						<span asp-validation-for="ImageUrl" class="text-danger"></span>
+						<label asp-for="Book.ImageUrl" class="px-2 fs-4">Upload Image</label>
+						<input asp-for="Book.ImageUrl" name="file" type="file" class="form-control rounded-pill" required />
+						<span asp-validation-for="Book.ImageUrl" class="text-danger"></span>
 					</div>
 
 					<button type="submit" class="btn-custom w-100">Submit</button>
@@ -82,9 +84,3 @@
 		</div>
 	</div>
 </section>
-
-<style>
-	.bg-create-overlay {
-		border-top:1px solid white;
-	}
-</style>
